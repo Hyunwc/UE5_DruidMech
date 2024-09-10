@@ -1,0 +1,23 @@
+{
+	"FileVersion": 3,
+	"EngineAssociation": "5.4",
+	"Category": "Samples",
+	"Description": "",
+	"Modules": [
+		{
+			"Name": "DruidMech",
+			"Type": "Runtime",
+			"LoadingPhase": "Default",
+			"AdditionalDependencies": [
+				"Engine"
+			]
+		}
+	],
+	"TargetPlatforms": [
+		"IOS",
+		"MacNoEditor",
+		"WindowsNoEditor",
+		"Android"
+	],
+	"EpicSampleNameHash": "3038063013"
+}
