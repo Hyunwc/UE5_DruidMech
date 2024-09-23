@@ -19,6 +19,19 @@ AFloorSwitch::AFloorSwitch()
 	Door = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Door"));
 	Door->SetupAttachment(RootComponent);
 
+	SwitchTime = 2.0f;
+
+	bCharacterOnSwitch = false;
+}
+
+void AFloorSwitch::CloseDoor()
+{
+	// 이 함수가 호출되면 문은 내려가고 스위치는 올라간다.
+	if (!bCharacterOnSwitch)
+	{
+		LowerDoor();
+		RaiseSwitch();
+	}
 }
 
 // Called when the game starts or when spawned
@@ -30,6 +43,12 @@ void AFloorSwitch::BeginPlay()
 	TriggerBox->OnComponentBeginOverlap.AddDynamic(this, &AFloorSwitch::OnOverlapBegin);
 	// 충돌이 끝났을 때,
 	TriggerBox->OnComponentEndOverlap.AddDynamic(this, &AFloorSwitch::OnOverlapEnd);
+
+	// 문과 스위치의 위치를 저장해두겠다.
+	InitialDoorLocation = Door->GetComponentLocation();
+	InitialSwitchLocation = Switch->GetComponentLocation();
+
+	
 }
 
 // Called every frame
@@ -41,11 +60,28 @@ void AFloorSwitch::Tick(float DeltaTime)
 
 void AFloorSwitch::OnOverlapBegin(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
-	UE_LOG(LogTemp, Warning, TEXT("Overlap Begin."));
+	bCharacterOnSwitch = true;
+	RaiseDoor();
+	LowerSwitch();
 }
 
 void AFloorSwitch::OnOverlapEnd(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
 {
-	UE_LOG(LogTemp, Warning, TEXT("Overlap End."));
+	bCharacterOnSwitch = false;
+	GetWorldTimerManager().SetTimer(SwitchHandle, this, &AFloorSwitch::CloseDoor, SwitchTime);
+}
+
+void AFloorSwitch::UpdateDoorLocation(float Z)
+{
+	FVector NewLocation = InitialDoorLocation;
+	NewLocation.Z += Z;
+	Door->SetWorldLocation(NewLocation);
+}
+
+void AFloorSwitch::UpdateSwitchLocation(float Z)
+{
+	FVector NewLocation = InitialSwitchLocation;
+	NewLocation.Z += Z;
+	Switch->SetWorldLocation(NewLocation);
 }
 
