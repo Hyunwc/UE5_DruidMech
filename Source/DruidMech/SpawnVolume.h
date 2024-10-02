@@ -32,4 +32,7 @@ public:
 	// BlueprintPure : 블루프린트에서 실행핀이 없는 함수, C++로 치면 const 함수 
 	UFUNCTION(BlueprintPure, Category = "Spawning")
 	FVector GetSpawnPoint(); // 랜덤으로 스폰위치를 정할 함수
+
+	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = "Spawning")
+	void SpawnOurActor(UClass* ToSpawn, const FVector& Location);
 };

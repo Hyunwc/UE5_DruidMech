@@ -37,3 +37,15 @@ FVector ASpawnVolume::GetSpawnPoint()
 	return Point;
 }
 
+void ASpawnVolume::SpawnOurActor_Implementation(UClass* ToSpawn, const FVector& Location)
+{
+	if (ToSpawn)
+	{
+		UWorld* World = GetWorld();
+		if (World)
+		{
+			AActor* Actor = World->SpawnActor<AActor>(ToSpawn, Location, FRotator(0.f));
+		}
+	}
+}
+
