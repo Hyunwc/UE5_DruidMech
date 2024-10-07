@@ -22,7 +22,18 @@ public:
 	UStaticMeshComponent* Mesh;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Item | Particles")
-	UParticleSystemComponent* IdleParticlesComponent;
+	UParticleSystemComponent* IdleParticlesComponent; // 컴포넌트 기반
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Item | Particles")
+	UParticleSystem* OverlapParticles; // 액터 기반, 자체 값을 바꿔야 하기 때문에 Edit와 ReadWrite로
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Item | Sounds")
+	USoundBase* OverlapSound;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Item | ItemProperties")
+	bool bRotate;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Item | ItemProperties")
+	float RotationRate;
 
 protected:
 	// Called when the game starts or when spawned

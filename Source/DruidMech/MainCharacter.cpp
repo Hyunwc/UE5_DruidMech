@@ -39,6 +39,30 @@ AMainCharacter::AMainCharacter()
 
 	BaseTurnRate = 65.0f;
 	BaseLookUpRate = 65.0f;
+
+	MaxHealth = 100.0f;
+	Health = 65.0f;
+	MaxStamina = 150.0f;
+	Stamina = 120.0f;
+	Coins = 0;
+}
+
+void AMainCharacter::DecrementHealth(float Amount)
+{
+	Health -= Amount;
+	if (Health <= 0.f)
+	{
+		Die();
+	}
+}
+
+void AMainCharacter::Die()
+{
+}
+
+void AMainCharacter::IncrementCoins(int32 Amount)
+{
+	Coins += Amount;
 }
 
 // Called when the game starts or when spawned

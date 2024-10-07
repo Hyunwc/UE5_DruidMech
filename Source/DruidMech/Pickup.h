@@ -13,8 +13,14 @@ UCLASS()
 class DRUIDMECH_API APickup : public AItem
 {
 	GENERATED_BODY()
+
+public:
 	
 	APickup();
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Coins")
+	int32 CoinCount;
+
 
 	virtual void OnOverlapBegin(
 		UPrimitiveComponent* OverlappedComponent,

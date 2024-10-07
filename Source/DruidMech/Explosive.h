@@ -14,7 +14,15 @@ class DRUIDMECH_API AExplosive : public AItem
 {
 	GENERATED_BODY()
 
+public:
+
 	AExplosive();
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Damage")
+	float Damage;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Damage")
+	TSubclassOf<UDamageType> DamageTypeClass;
+
 
 	virtual void OnOverlapBegin(
 		UPrimitiveComponent* OverlappedComponent,
