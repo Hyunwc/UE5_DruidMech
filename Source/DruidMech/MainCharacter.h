@@ -6,6 +6,16 @@
 #include "GameFramework/Character.h"
 #include "MainCharacter.generated.h"
 
+UENUM(BlueprintType)
+enum class EMovementStatus : uint8 // 타입을 부호가 없는 1바이트 정수로 쓰고싶다
+{
+	EMS_Normal UMETA(DisplayName = "Normal"),
+	EMS_Sprinting UMETA(DisplayName = "Sprinting"),
+	EMS_Dead UMETA(DisplayName = "Dead"),
+
+	EMS_MAX UMETA(DisplayName = "DefaultMax")
+};
+
 UCLASS()
 class DRUIDMECH_API AMainCharacter : public ACharacter //액터 -> 폰을 상속 받음
 {
@@ -14,6 +24,21 @@ class DRUIDMECH_API AMainCharacter : public ACharacter //액터 -> 폰을 상속 받음
 public:
 	// Sets default values for this character's properties
 	AMainCharacter();
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = Enums)
+	EMovementStatus MovementStatus; // 현재 상태, Current 붙이는게 좋아보임.
+	void SetMovementStatus(EMovementStatus Status);
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = Running)
+	float RunningSpeed;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = Enums)
+	float SprintingSpeed;
+
+	bool bShiftKeyDown;
+
+	void ShiftKeyDown();
+	void ShiftKeyUp();
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera)
 	class USpringArmComponent* CameraBoom; //전방선언

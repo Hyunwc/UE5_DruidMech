@@ -45,6 +45,38 @@ AMainCharacter::AMainCharacter()
 	MaxStamina = 150.0f;
 	Stamina = 120.0f;
 	Coins = 0;
+
+	RunningSpeed = 450.0f;
+	SprintingSpeed = 800.0f;
+
+	bShiftKeyDown = false;
+
+	MovementStatus = EMovementStatus::EMS_Normal;
+}
+
+void AMainCharacter::SetMovementStatus(EMovementStatus Status)
+{
+	MovementStatus = Status;
+
+	if (MovementStatus == EMovementStatus::EMS_Sprinting)
+	{
+		// 캐릭터 Movement 컴포넌트를 가져옴 (메인캐릭터의 블루프린트 참고)
+		GetCharacterMovement()->MaxWalkSpeed = SprintingSpeed;
+	}
+	else
+	{
+		GetCharacterMovement()->MaxWalkSpeed = RunningSpeed;
+	}
+}
+
+void AMainCharacter::ShiftKeyDown()
+{
+	bShiftKeyDown = true;
+}
+
+void AMainCharacter::ShiftKeyUp()
+{
+	bShiftKeyDown = false;
 }
 
 void AMainCharacter::DecrementHealth(float Amount)
@@ -98,6 +130,8 @@ void AMainCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCompo
 	PlayerInputComponent->BindAction(TEXT("Jump"), IE_Pressed, this, &ACharacter::Jump);
 	// IE_Released : 누르지 않았을 때
 	PlayerInputComponent->BindAction(TEXT("Jump"), IE_Released, this, &ACharacter::StopJumping);
+	PlayerInputComponent->BindAction(TEXT("Sprint"), IE_Pressed, this, &AMainCharacter::ShiftKeyDown);
+	PlayerInputComponent->BindAction(TEXT("Sprint"), IE_Released, this, &AMainCharacter::ShiftKeyUp);
 
 }
 

@@ -30,4 +30,7 @@ public:
 	// 매번 GetPawn()하기엔 귀찮으니 멤버로 하나 두자
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Movement)
 	APawn* Pawn;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Movement)
+	class AMainCharacter* MainCharacter;
 };
