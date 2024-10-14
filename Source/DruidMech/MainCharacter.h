@@ -16,6 +16,17 @@ enum class EMovementStatus : uint8 // 타입을 부호가 없는 1바이트 정수로 쓰고싶다
 	EMS_MAX UMETA(DisplayName = "DefaultMax")
 };
 
+UENUM(BlueprintType)
+enum class EStaminaStatus : uint8
+{
+	ESS_Normal UMETA(DisplayName = "Normal"),
+	ESS_BelowMinimum UMETA(DisplayName = "BelowMinimum"),
+	ESS_Exhausted UMETA(DisplayName = "Exhausted"),
+	ESS_ExhaustedRecovering UMETA(DisplayName = "ExhaustedRecovering"),
+
+	ESS_MAX UMETA(DisplayName = "DefaultMax")
+};
+
 UCLASS()
 class DRUIDMECH_API AMainCharacter : public ACharacter //액터 -> 폰을 상속 받음
 {
@@ -27,6 +38,18 @@ public:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = Enums)
 	EMovementStatus MovementStatus; // 현재 상태, Current 붙이는게 좋아보임.
+	
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = Enums)
+	EStaminaStatus StaminaStatus;
+
+	FORCEINLINE void SetStaminaStatus(EStaminaStatus Status) { StaminaStatus = Status; }
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Movement)
+	float StaminaDrainRate;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Movement)
+	float MinSprintStamina; // 임계치 밑일 때는 sprint가 되지 않게
+
 	void SetMovementStatus(EMovementStatus Status);
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = Running)

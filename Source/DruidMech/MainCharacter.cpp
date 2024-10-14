@@ -52,6 +52,10 @@ AMainCharacter::AMainCharacter()
 	bShiftKeyDown = false;
 
 	MovementStatus = EMovementStatus::EMS_Normal;
+	StaminaStatus = EStaminaStatus::ESS_Normal;
+
+	StaminaDrainRate = 25.0f;
+	MinSprintStamina = 50.0f;
 }
 
 void AMainCharacter::SetMovementStatus(EMovementStatus Status)
@@ -109,6 +113,81 @@ void AMainCharacter::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
+	float DeltaStamina = StaminaDrainRate * DeltaTime; // √ ¥Á 25 ±¿”
+
+	switch (StaminaStatus)
+	{
+	case EStaminaStatus::ESS_Normal:
+		if (bShiftKeyDown)
+		{
+			Stamina -= DeltaStamina;
+			if (Stamina <= MinSprintStamina)
+			{
+				SetStaminaStatus(EStaminaStatus::ESS_BelowMinimum);
+			}
+
+			SetMovementStatus(EMovementStatus::EMS_Sprinting);
+		}
+		else
+		{
+			Stamina += DeltaStamina;
+			if (Stamina > MaxStamina)
+			{
+				Stamina = MaxStamina;
+			}
+
+			SetMovementStatus(EMovementStatus::EMS_Normal);
+		}
+		break;
+	case EStaminaStatus::ESS_BelowMinimum:
+		if (bShiftKeyDown)
+		{
+			Stamina -= DeltaStamina;
+			if (Stamina <= 0.f)
+			{
+				SetStaminaStatus(EStaminaStatus::ESS_Exhausted);
+				Stamina = 0;
+				SetMovementStatus(EMovementStatus::EMS_Normal);
+			}
+			else
+			{
+				SetMovementStatus(EMovementStatus::EMS_Sprinting);
+			}
+		}
+		else
+		{
+			Stamina += DeltaStamina;
+			if (Stamina >= MinSprintStamina)
+			{
+				SetStaminaStatus(EStaminaStatus::ESS_Normal);
+			}
+
+			SetMovementStatus(EMovementStatus::EMS_Normal);
+		}
+		break;
+	case EStaminaStatus::ESS_Exhausted:
+		if (bShiftKeyDown)
+		{
+			Stamina = 0.0f;
+		}
+		else
+		{
+			SetStaminaStatus(EStaminaStatus::ESS_ExhaustedRecovering);
+			Stamina += DeltaStamina;
+		}
+		SetMovementStatus(EMovementStatus::EMS_Normal);
+		break;
+	case EStaminaStatus::ESS_ExhaustedRecovering:
+		Stamina += DeltaStamina;
+		if (Stamina >= MinSprintStamina)
+		{
+			SetStaminaStatus(EStaminaStatus::ESS_Normal);
+		}
+		SetMovementStatus(EMovementStatus::EMS_Normal);
+		break;
+	default:
+		;
+	}
 }
 
 // Called to bind functionality to input
