@@ -36,6 +36,13 @@ public:
 	// Sets default values for this character's properties
 	AMainCharacter();
 
+	TArray<FVector> PickupLocations;
+
+	// 블루프린트에서 호출할 수 있게
+	UFUNCTION(BlueprintCallable)
+	void ShowPickupLocations();
+
+
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = Enums)
 	EMovementStatus MovementStatus; // 현재 상태, Current 붙이는게 좋아보임.
 	

@@ -6,6 +6,7 @@
 #include "Camera/CameraComponent.h"
 #include "Components/CapsuleComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
+#include "Kismet/KismetSystemLibrary.h"
 
 // Sets default values
 AMainCharacter::AMainCharacter()
@@ -58,6 +59,15 @@ AMainCharacter::AMainCharacter()
 	MinSprintStamina = 50.0f;
 }
 
+void AMainCharacter::ShowPickupLocations()
+{
+	for (auto Location : PickupLocations)
+	{
+		UKismetSystemLibrary::DrawDebugSphere(this, Location, 25.0f, 8,
+			FLinearColor::Green, 10.0f, 0.5f);
+	}
+}
+
 void AMainCharacter::SetMovementStatus(EMovementStatus Status)
 {
 	MovementStatus = Status;
@@ -105,7 +115,12 @@ void AMainCharacter::IncrementCoins(int32 Amount)
 void AMainCharacter::BeginPlay()
 {
 	Super::BeginPlay();
-	
+
+	// 현재 객체, 현재 플레이어의 위치, 반지름, 구를 어느정도로?, 색깔, 몇초 정도 남게 할 것인지?
+	/*UKismetSystemLibrary::DrawDebugSphere(this,
+		GetActorLocation() + FVector(0, 0, 75.f),
+		25.0f, 12, FLinearColor::Green,
+		10.f, 0.5f);*/
 }
 
 // Called every frame

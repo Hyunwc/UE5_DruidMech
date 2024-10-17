@@ -19,6 +19,8 @@ void APickup::OnOverlapBegin(UPrimitiveComponent* OverlappedComponent, AActor* O
 		if (MainCharacter)
 		{
 			MainCharacter->IncrementCoins(CoinCount);
+			// 현재 동전의 위치 추가
+			MainCharacter->PickupLocations.Add(GetActorLocation());
 			Super::OnOverlapBegin(OverlappedComponent, OtherActor, OtherComp, OtherBodyIndex, bFromSweep, SweepResult);
 		}
 	}
