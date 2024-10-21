@@ -20,8 +20,11 @@ void AExplosive::OnOverlapBegin(UPrimitiveComponent* OverlappedComponent, AActor
 		AMainCharacter* MainCharacter = Cast<AMainCharacter>(OtherActor);
 		if (MainCharacter)
 		{
-			MainCharacter->DecrementHealth(Damage);
 			Super::OnOverlapBegin(OverlappedComponent, OtherActor, OtherComp, OtherBodyIndex, bFromSweep, SweepResult);
+
+			MainCharacter->DecrementHealth(Damage);
+
+			Destroy();
 		}
 	}
 }

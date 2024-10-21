@@ -7,6 +7,7 @@
 #include "Components/CapsuleComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Kismet/KismetSystemLibrary.h"
+#include "Weapon.h"
 
 // Sets default values
 AMainCharacter::AMainCharacter()
@@ -51,6 +52,7 @@ AMainCharacter::AMainCharacter()
 	SprintingSpeed = 800.0f;
 
 	bShiftKeyDown = false;
+	bLMBDown = false;
 
 	MovementStatus = EMovementStatus::EMS_Normal;
 	StaminaStatus = EStaminaStatus::ESS_Normal;
@@ -227,6 +229,9 @@ void AMainCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCompo
 	PlayerInputComponent->BindAction(TEXT("Sprint"), IE_Pressed, this, &AMainCharacter::ShiftKeyDown);
 	PlayerInputComponent->BindAction(TEXT("Sprint"), IE_Released, this, &AMainCharacter::ShiftKeyUp);
 
+	PlayerInputComponent->BindAction(TEXT("LMB"), IE_Pressed, this, &AMainCharacter::LMBDown);
+	PlayerInputComponent->BindAction(TEXT("LMB"), IE_Released, this, &AMainCharacter::LMBUp);
+
 }
 
 void AMainCharacter::MoveForward(float Value)
@@ -292,5 +297,37 @@ void AMainCharacter::LookUp(float Value)
 	{
 		AddControllerPitchInput(Value);
 	}
+}
+
+void AMainCharacter::LMBDown()
+{
+	bLMBDown = true;
+
+	if (ActiveOverlappingItem)
+	{
+		AWeapon* Weapon = Cast<AWeapon>(ActiveOverlappingItem);
+		if (Weapon)
+		{
+			Weapon->Equip(this);
+			SetActiveOverlappingItem(nullptr);
+		}
+	}
+}
+
+void AMainCharacter::LMBUp()
+{
+	bLMBDown = false;
+}
+
+// 무기 장착
+void AMainCharacter::SetEquippedWeapon(AWeapon* WeaponToSet)
+{
+	// 이미 무기를 장착중일 때 들고 있는 무기 파괴
+	if (EquippedWeapon)
+	{
+		EquippedWeapon->Destroy();
+	}
+
+	EquippedWeapon = WeaponToSet;
 }
 
