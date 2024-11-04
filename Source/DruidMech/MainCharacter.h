@@ -148,4 +148,15 @@ public:
 	{
 		ActiveOverlappingItem = Item;
 	}
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Anims")
+	bool bAttacking; // 공격할 수 있는 상태인지?
+
+	void Attack();
+
+	UFUNCTION(BlueprintCallable)
+	void AttackEnd();
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Anims")
+	UAnimMontage* CombatMontage;
 };

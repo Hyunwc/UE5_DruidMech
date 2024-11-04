@@ -53,6 +53,7 @@ AMainCharacter::AMainCharacter()
 
 	bShiftKeyDown = false;
 	bLMBDown = false;
+	bAttacking = false;
 
 	MovementStatus = EMovementStatus::EMS_Normal;
 	StaminaStatus = EStaminaStatus::ESS_Normal;
@@ -236,8 +237,8 @@ void AMainCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCompo
 
 void AMainCharacter::MoveForward(float Value)
 {
-	// 컨트롤러가 유효하고 Value가 0이 아닐때
-	if (Controller != nullptr && Value != 0.0f)
+	// 컨트롤러가 유효하고 Value가 0이 아닐때 && 공격중이 아닐때
+	if (Controller != nullptr && Value != 0.0f && !bAttacking)
 	{
 		//현재 카메라의 방향을 얻어온다(Pitch, Yaw, Roll) 
 		const FRotator Rotation = Controller->GetControlRotation();
@@ -253,7 +254,7 @@ void AMainCharacter::MoveForward(float Value)
 void AMainCharacter::MoveRight(float Value)
 {
 	// 컨트롤러가 유효하고 Value가 0이 아닐때
-	if (Controller != nullptr && Value != 0.0f)
+	if (Controller != nullptr && Value != 0.0f && !bAttacking)
 	{
 		//현재 카메라의 방향을 얻어온다(Pitch, Yaw, Roll) 
 		const FRotator Rotation = Controller->GetControlRotation();
@@ -312,6 +313,10 @@ void AMainCharacter::LMBDown()
 			SetActiveOverlappingItem(nullptr);
 		}
 	}
+	else if (EquippedWeapon) // 무기를 이미 장착중이라면 공격이 실행되게
+	{
+		Attack();
+	}
 }
 
 void AMainCharacter::LMBUp()
@@ -329,5 +334,40 @@ void AMainCharacter::SetEquippedWeapon(AWeapon* WeaponToSet)
 	}
 
 	EquippedWeapon = WeaponToSet;
+}
+
+void AMainCharacter::Attack()
+{
+	if (bAttacking) return; // 이미 공격중이라면?
+	bAttacking = true;
+
+	UAnimInstance* AnimInstace = GetMesh()->GetAnimInstance();
+	if (AnimInstace && CombatMontage)
+	{
+		int32 Section = FMath::RandRange(0, 1);
+		switch (Section)
+		{
+		case 0:
+			AnimInstace->Montage_Play(CombatMontage, 2.2f); // 몽타주 실행 2.2배로
+			AnimInstace->Montage_JumpToSection(FName("Attack_1"), CombatMontage);
+			break;
+		case 1:
+			AnimInstace->Montage_Play(CombatMontage, 1.8f); // 몽타주 실행 2.2배로
+			AnimInstace->Montage_JumpToSection(FName("Attack_2"), CombatMontage);
+			break;
+		default:
+			;
+		}
+	}
+}
+
+void AMainCharacter::AttackEnd()
+{
+	bAttacking = false;
+
+	if (bLMBDown)
+	{
+		Attack();
+	}
 }
 
