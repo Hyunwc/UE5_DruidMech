@@ -46,6 +46,15 @@ public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "AI")
 	class AAIController* AIController;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "AI")
+	float Health;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "AI")
+	float MaxHealth;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "AI")
+	float Damage;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "AI")
+	UParticleSystem* HitParticles;
+
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
@@ -80,4 +89,10 @@ public:
 
 	UFUNCTION(BlueprintCallable)
 	void MoveToTarget(class AMainCharacter* Target);
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "AI")
+	bool bOverlappingCombatSphere;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "AI")
+	AMainCharacter* CombatTarget;
 };

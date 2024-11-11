@@ -19,6 +19,10 @@ UCLASS()
 class DRUIDMECH_API AWeapon : public AItem
 {
 	GENERATED_BODY()
+
+protected:
+	virtual void BeginPlay() override;
+
 	
 public:	
 	// Sets default values for this actor's properties
@@ -36,6 +40,12 @@ public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "SkeletalMesh")
 	USkeletalMeshComponent* SkeletalMesh;
 
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Item | Combat")
+	class UBoxComponent* CombatCollision;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Item | Combat")
+	float Damage;
+
 	virtual void OnOverlapBegin(
 		UPrimitiveComponent* OverlappedComponent,
 		AActor* OtherActor,
@@ -52,6 +62,8 @@ public:
 		int32 OtherBodyIndex
 	) override;
 
+	
+
 	void Equip(class AMainCharacter* Char);
 
 	FORCEINLINE void SetWeaponState(EWeaponState State)
@@ -63,4 +75,14 @@ public:
 	{
 		return WeaponState;
 	}
+
+	UFUNCTION()
+	void CombatOnOverlapBegin(UPrimitiveComponent* OverlappedComponent,
+		AActor* OtherActor, UPrimitiveComponent* OtherComp,
+		int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
+
+	UFUNCTION()
+	void CombatOnOverlapEnd(UPrimitiveComponent* OverlappedComponent,
+		AActor* OtherActor, UPrimitiveComponent* OtherComp,
+		int32 OtherBodyIndex);
 };

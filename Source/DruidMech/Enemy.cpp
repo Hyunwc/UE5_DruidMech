@@ -22,8 +22,13 @@ AEnemy::AEnemy()
 	CombatSphere->SetupAttachment(GetRootComponent());
 	CombatSphere->InitSphereRadius(75.f);
 
-	EnemyMovementStatus = EEnemyMovementStatus::EMS_Idle; // 초기는 Idle로
+	bOverlappingCombatSphere = false;
 
+	Health = 75.0f;
+	MaxHealth = 100.0f;
+	Damage = 10.0f;
+
+	EnemyMovementStatus = EEnemyMovementStatus::EMS_Idle; // 초기는 Idle로
 }
 
 // Called when the game starts or when spawned
@@ -83,6 +88,7 @@ void AEnemy::AgroSphereOnOverlapEnd(UPrimitiveComponent* OverlappedComponent, AA
 
 			if (AIController)
 			{
+				MainCharacter = nullptr;
 				AIController->StopMovement();
 			}
 		}
@@ -97,6 +103,8 @@ void AEnemy::CombatSphereOnOverlapBegin(UPrimitiveComponent* OverlappedComponent
 		AMainCharacter* MainCharacter = Cast<AMainCharacter>(OtherActor);
 		if (MainCharacter)
 		{
+			CombatTarget = MainCharacter;
+			bOverlappingCombatSphere = true;
 			SetEnemyMovementStatus(EEnemyMovementStatus::EMS_Attacking);
 		}
 	}
@@ -109,6 +117,7 @@ void AEnemy::CombatSphereOnOverlapEnd(UPrimitiveComponent* OverlappedComponent, 
 		AMainCharacter* MainCharacter = Cast<AMainCharacter>(OtherActor);
 		if (MainCharacter)
 		{
+			bOverlappingCombatSphere = false;
 			MoveToTarget(MainCharacter);
 		}
 	}
