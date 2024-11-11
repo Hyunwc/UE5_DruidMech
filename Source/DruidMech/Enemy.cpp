@@ -5,6 +5,8 @@
 #include "Components/SphereComponent.h"
 #include "MainCharacter.h"
 #include "AIController.h"
+#include "Navigation/PathFollowingComponent.h"
+#include "Kismet/KismetSystemLibrary.h"
 
 // Sets default values
 AEnemy::AEnemy()
@@ -71,14 +73,45 @@ void AEnemy::AgroSphereOnOverlapBegin(UPrimitiveComponent* OverlappedComponent, 
 
 void AEnemy::AgroSphereOnOverlapEnd(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
 {
+	// 충돌 했다면
+	if (OtherActor)
+	{
+		AMainCharacter* MainCharacter = Cast<AMainCharacter>(OtherActor);
+		if (MainCharacter)
+		{
+			SetEnemyMovementStatus(EEnemyMovementStatus::EMS_Idle);
+
+			if (AIController)
+			{
+				AIController->StopMovement();
+			}
+		}
+	}
 }
 
 void AEnemy::CombatSphereOnOverlapBegin(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
+	// 충돌 했다면
+	if (OtherActor)
+	{
+		AMainCharacter* MainCharacter = Cast<AMainCharacter>(OtherActor);
+		if (MainCharacter)
+		{
+			SetEnemyMovementStatus(EEnemyMovementStatus::EMS_Attacking);
+		}
+	}
 }
 
 void AEnemy::CombatSphereOnOverlapEnd(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
 {
+	if (OtherActor)
+	{
+		AMainCharacter* MainCharacter = Cast<AMainCharacter>(OtherActor);
+		if (MainCharacter)
+		{
+			MoveToTarget(MainCharacter);
+		}
+	}
 }
 
 void AEnemy::MoveToTarget(AMainCharacter* Target)
@@ -87,7 +120,23 @@ void AEnemy::MoveToTarget(AMainCharacter* Target)
 
 	if (AIController)
 	{
-		UE_LOG(LogTemp, Warning, TEXT("MoveToTarget()"));
+		FAIMoveRequest MoveRequest;
+		MoveRequest.SetGoalActor(Target);
+		MoveRequest.SetAcceptanceRadius(10.0f);
+
+		FNavPathSharedPtr NavPath;
+		// 1 : MoveRequest, 2 : 움직인 경로?
+		AIController->MoveTo(MoveRequest, &NavPath);
+
+		// AI가 다닐 경로를 디버그 스피어로 표시
+		/*auto PathPoints = NavPath->GetPathPoints();
+		for (auto Point : PathPoints)
+		{
+			FVector Location = Point.Location;
+
+			UKismetSystemLibrary::DrawDebugSphere(this, Location,
+				25.0f, 8, FLinearColor::Red, 10.0f, 1.5f);
+		}*/
 	}
 }
 
