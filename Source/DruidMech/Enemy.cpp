@@ -20,7 +20,7 @@ AEnemy::AEnemy()
 
 	CombatSphere = CreateDefaultSubobject<USphereComponent>(TEXT("CombatSphere"));
 	CombatSphere->SetupAttachment(GetRootComponent());
-	CombatSphere->InitSphereRadius(75.f);
+	CombatSphere->InitSphereRadius(200.f);
 
 	bOverlappingCombatSphere = false;
 

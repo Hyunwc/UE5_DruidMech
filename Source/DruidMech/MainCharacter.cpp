@@ -8,6 +8,8 @@
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Kismet/KismetSystemLibrary.h"
 #include "Weapon.h"
+#include "Kismet/GameplayStatics.h"
+#include "Sound/SoundCue.h"
 
 // Sets default values
 AMainCharacter::AMainCharacter()
@@ -357,6 +359,11 @@ void AMainCharacter::Attack()
 			break;
 		default:
 			;
+		}
+
+		if (EquippedWeapon->SwingSound)
+		{
+			UGameplayStatics::PlaySound2D(this, EquippedWeapon->SwingSound);
 		}
 	}
 }
