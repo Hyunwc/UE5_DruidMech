@@ -360,11 +360,6 @@ void AMainCharacter::Attack()
 		default:
 			;
 		}
-
-		if (EquippedWeapon->SwingSound)
-		{
-			UGameplayStatics::PlaySound2D(this, EquippedWeapon->SwingSound);
-		}
 	}
 }
 
@@ -375,6 +370,14 @@ void AMainCharacter::AttackEnd()
 	if (bLMBDown)
 	{
 		Attack();
+	}
+}
+
+void AMainCharacter::PlaySwingSound()
+{
+	if (EquippedWeapon->SwingSound)
+	{
+		UGameplayStatics::PlaySound2D(this, EquippedWeapon->SwingSound);
 	}
 }
 
