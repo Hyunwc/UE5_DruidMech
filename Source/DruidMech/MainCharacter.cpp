@@ -10,6 +10,8 @@
 #include "Weapon.h"
 #include "Kismet/GameplayStatics.h"
 #include "Sound/SoundCue.h"
+#include "Kismet/KismetMathLibrary.h"
+#include "Enemy.h"
 
 // Sets default values
 AMainCharacter::AMainCharacter()
@@ -62,6 +64,9 @@ AMainCharacter::AMainCharacter()
 
 	StaminaDrainRate = 25.0f;
 	MinSprintStamina = 50.0f;
+
+	InterpSpeed = 15.f;
+	bInterpToEnemy = false;
 }
 
 void AMainCharacter::ShowPickupLocations()
@@ -71,6 +76,18 @@ void AMainCharacter::ShowPickupLocations()
 		UKismetSystemLibrary::DrawDebugSphere(this, Location, 25.0f, 8,
 			FLinearColor::Green, 10.0f, 0.5f);
 	}
+}
+
+void AMainCharacter::SetInterpToEnemy(bool Interp)
+{
+	bInterpToEnemy = Interp;
+}
+
+FRotator AMainCharacter::GetLookAtRotationYaw(FVector Target)
+{
+	FRotator LookAtRotation = UKismetMathLibrary::FindLookAtRotation(GetActorLocation(), Target);
+	FRotator LookAtRotationYaw(0.0f, LookAtRotation.Yaw, 0.0f);
+	return LookAtRotationYaw;
 }
 
 void AMainCharacter::SetMovementStatus(EMovementStatus Status)
@@ -208,6 +225,14 @@ void AMainCharacter::Tick(float DeltaTime)
 	default:
 		;
 	}
+
+	if (bInterpToEnemy && CombatTarget)
+	{
+		FRotator LookAtYaw = GetLookAtRotationYaw(CombatTarget->GetActorLocation());
+		FRotator InterpRotation = FMath::RInterpTo(GetActorRotation(), LookAtYaw, DeltaTime, InterpSpeed);
+
+		SetActorRotation(InterpRotation);
+	}
 }
 
 // Called to bind functionality to input
@@ -341,7 +366,9 @@ void AMainCharacter::SetEquippedWeapon(AWeapon* WeaponToSet)
 void AMainCharacter::Attack()
 {
 	if (bAttacking) return; // 이미 공격중이라면?
+
 	bAttacking = true;
+	SetInterpToEnemy(true);
 
 	UAnimInstance* AnimInstace = GetMesh()->GetAnimInstance();
 	if (AnimInstace && CombatMontage)
@@ -366,6 +393,7 @@ void AMainCharacter::Attack()
 void AMainCharacter::AttackEnd()
 {
 	bAttacking = false;
+	SetInterpToEnemy(false);
 
 	if (bLMBDown)
 	{

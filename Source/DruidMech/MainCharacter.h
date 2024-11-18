@@ -57,6 +57,21 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Movement)
 	float MinSprintStamina; // 임계치 밑일 때는 sprint가 되지 않게
 
+	float InterpSpeed; // 보간 스피드
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Combat")
+	bool bInterpToEnemy;
+
+	void SetInterpToEnemy(bool Interp);
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Combat")
+	class AEnemy* CombatTarget;
+
+	FORCEINLINE void SetCombetTarget(AEnemy* Target){
+		CombatTarget = Target;
+	}
+
+	FRotator GetLookAtRotationYaw(FVector Target);
+
 	void SetMovementStatus(EMovementStatus Status);
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = Running)

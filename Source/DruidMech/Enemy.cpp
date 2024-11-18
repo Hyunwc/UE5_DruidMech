@@ -36,6 +36,9 @@ AEnemy::AEnemy()
 	MaxHealth = 100.0f;
 	Damage = 10.0f;
 
+	AttackMinTime = 0.5f;
+	AttackMaxTime = 3.5f;
+
 	EnemyMovementStatus = EEnemyMovementStatus::EMS_Idle; // 초기는 Idle로
 }
 
@@ -121,9 +124,12 @@ void AEnemy::CombatSphereOnOverlapBegin(UPrimitiveComponent* OverlappedComponent
 		AMainCharacter* MainCharacter = Cast<AMainCharacter>(OtherActor);
 		if (MainCharacter)
 		{
+			MainCharacter->SetCombetTarget(this);
 			CombatTarget = MainCharacter;
 			bOverlappingCombatSphere = true;
-			Attack();
+			
+			float AttackTime = FMath::FRandRange(AttackMinTime, AttackMaxTime);
+			GetWorldTimerManager().SetTimer(AttackTimer, this, &AEnemy::Attack, AttackTime);
 		}
 	}
 }
@@ -137,6 +143,13 @@ void AEnemy::CombatSphereOnOverlapEnd(UPrimitiveComponent* OverlappedComponent, 
 		{
 			bOverlappingCombatSphere = false;
 			MoveToTarget(MainCharacter);
+
+			if (MainCharacter->CombatTarget == this)
+			{
+				MainCharacter->SetCombetTarget(nullptr);
+			}
+
+			GetWorldTimerManager().ClearTimer(AttackTimer);
 		}
 	}
 }
@@ -234,7 +247,8 @@ void AEnemy::AttackEnd()
 	bAttacking = false;
 	if (bOverlappingCombatSphere)
 	{
-		Attack();
+		float AttackTime = FMath::FRandRange(AttackMinTime, AttackMaxTime);
+		GetWorldTimerManager().SetTimer(AttackTimer, this, &AEnemy::Attack, AttackTime);
 	}
 }
 
