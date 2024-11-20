@@ -124,8 +124,37 @@ void AMainCharacter::DecrementHealth(float Amount)
 	}
 }
 
+float AMainCharacter::TakeDamage(float DamageAmount, FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser)
+{
+	Health -= DamageAmount;
+
+	if (Health <= 0.f)
+	{
+		Die();
+		if (DamageCauser)
+		{
+			AEnemy* Enemy = Cast<AEnemy>(DamageCauser);
+			if (Enemy)
+			{
+
+			}
+		}
+	}
+	return DamageAmount;
+}
+
 void AMainCharacter::Die()
 {
+	// 이미 죽었다면 리턴
+	if (MovementStatus == EMovementStatus::EMS_Dead) return;
+
+	UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
+	if (AnimInstance && CombatMontage)
+	{
+		AnimInstance->Montage_Play(CombatMontage, 1.0f);
+		AnimInstance->Montage_JumpToSection(FName("Death"));
+	}
+	SetMovementStatus(EMovementStatus::EMS_Dead);
 }
 
 void AMainCharacter::IncrementCoins(int32 Amount)

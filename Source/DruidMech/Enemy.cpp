@@ -11,6 +11,7 @@
 #include "Kismet/GameplayStatics.h"
 #include "Engine/SkeletalMeshSocket.h"
 #include "Sound/SoundCue.h"
+#include "Components/CapsuleComponent.h"
 
 // Sets default values
 AEnemy::AEnemy()
@@ -201,9 +202,15 @@ void AEnemy::CombatOnOverlapBegin(UPrimitiveComponent* OverlappedComponent, AAct
 						FRotator(0.f), false);
 				}
 			}
+
 			if (MainCharacter->HitSound)
 			{
 				UGameplayStatics::PlaySound2D(this, MainCharacter->HitSound);
+			}
+
+			if (DamageTypeClass)
+			{
+				UGameplayStatics::ApplyDamage(MainCharacter, Damage, AIController, this, DamageTypeClass);
 			}
 		}
 	}
@@ -252,10 +259,56 @@ void AEnemy::AttackEnd()
 	}
 }
 
+float AEnemy::TakeDamage(float DamageAmount, FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser)
+{
+	Health -= DamageAmount;
+
+	if (Health <= 0.f)
+	{
+		Health = 0.f;
+		Die(DamageCauser);
+	}
+
+	return DamageAmount;
+}
+
+void AEnemy::Die(AActor* Causer)
+{
+	SetEnemyMovementStatus(EEnemyMovementStatus::EMS_Dead);
+
+	UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
+	if (AnimInstance)
+	{
+		AnimInstance->Montage_Play(CombatMontage, 1.0f);
+		AnimInstance->Montage_JumpToSection(FName("Death"), CombatMontage);
+	}
+
+	CombatCollision->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	AgroSphere->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	CombatSphere->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+
+	bAttacking = false;
+
+	AMainCharacter* MainCharacter = Cast<AMainCharacter>(Causer);
+	if (MainCharacter)
+	{
+
+	}
+}
+
+
 void AEnemy::PlaySwingSound()
 {
 	if (SwingSound)
 	{
 		UGameplayStatics::PlaySound2D(this, SwingSound);
 	}
+}
+
+void AEnemy::DeathEnd()
+{
+	// 애니를 강제로 중지시킨다.
+	GetMesh()->bPauseAnims = true;
+	GetMesh()->bNoSkeletonUpdate = true;
 }

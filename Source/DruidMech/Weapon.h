@@ -94,4 +94,16 @@ public:
 
 	UFUNCTION(BlueprintCallable)
 	void DeactivateCollision();
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Item | Combat")
+	TSubclassOf<UDamageType> DamageTypeClass;
+
+	// 폰이 아니기 때문에 컨트롤러를 가져와야함
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Item | Combat")
+	AController* WeaponInstigator;
+
+	FORCEINLINE void SetInstigator(AController* Inst)
+	{
+		WeaponInstigator = Inst;
+	}
 };

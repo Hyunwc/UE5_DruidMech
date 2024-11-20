@@ -116,6 +116,10 @@ public:
 	int32 Coins;
 
 	void DecrementHealth(float Amount);
+
+	// AActor에 있는 함수임
+	virtual float TakeDamage(float DamageAmount, struct FDamageEvent const& DamageEvent,
+		AController* EventInstigator, AActor* DamageCauser) override;
 	void Die();
 
 	void IncrementCoins(int32 Amount);
