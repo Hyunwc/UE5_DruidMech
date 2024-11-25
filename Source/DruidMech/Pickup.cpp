@@ -3,6 +3,7 @@
 
 #include "Pickup.h"
 #include "MainCharacter.h"
+#include "Kismet/GameplayStatics.h"
 
 APickup::APickup()
 {
@@ -23,6 +24,17 @@ void APickup::OnOverlapBegin(UPrimitiveComponent* OverlappedComponent, AActor* O
 			MainCharacter->IncrementCoins(CoinCount);
 			// 현재 동전의 위치 추가
 			MainCharacter->PickupLocations.Add(GetActorLocation());
+
+			if (OverlapParticles)
+			{
+				UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), OverlapParticles, GetActorLocation(),
+					FRotator(0.f), true);
+			}
+
+			if (OverlapSound)
+			{
+				UGameplayStatics::PlaySound2D(this, OverlapSound);
+			}
 
 			Destroy();
 		}

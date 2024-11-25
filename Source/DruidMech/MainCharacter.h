@@ -36,6 +36,12 @@ public:
 	// Sets default values for this character's properties
 	AMainCharacter();
 
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Combat")
+	FVector CombatTargetLocation;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Controller")
+	class AMainPlayerController* MainPlayerController;
+
 	TArray<FVector> PickupLocations;
 
 	// 블루프린트에서 호출할 수 있게
@@ -124,6 +130,8 @@ public:
 
 	void IncrementCoins(int32 Amount);
 
+	virtual void Jump() override;
+
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
@@ -151,9 +159,14 @@ public:
 	void Turn(float Value);
 	void LookUp(float Value);
 
+	bool CanMove(float Value);
+
 	bool bLMBDown;
 	void LMBDown();
 	void LMBUp();
+
+	bool bMovingForward;
+	bool bMovingRight;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = Items)
 	class AWeapon* EquippedWeapon;
@@ -187,4 +200,7 @@ public:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Combat")
 	class USoundCue* HitSound;
+
+	UFUNCTION(BlueprintCallable)
+	void DeathEnd();
 };

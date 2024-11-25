@@ -78,6 +78,10 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Combat")
 	TSubclassOf<UDamageType> DamageTypeClass;
 
+	FTimerHandle DeathTimer;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Combat")
+	float DeathDelay;
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
@@ -154,4 +158,11 @@ public:
 
 	UFUNCTION(BlueprintCallable)
 	void DeathEnd();
+
+	UFUNCTION(BlueprintCallable)
+	bool Alive();
+
+	void Disappear();
+
+	bool bHasValidTarget;
 };

@@ -12,6 +12,7 @@
 #include "Engine/SkeletalMeshSocket.h"
 #include "Sound/SoundCue.h"
 #include "Components/CapsuleComponent.h"
+#include "MainPlayerController.h"
 
 // Sets default values
 AEnemy::AEnemy()
@@ -39,6 +40,10 @@ AEnemy::AEnemy()
 
 	AttackMinTime = 0.5f;
 	AttackMaxTime = 3.5f;
+
+	DeathDelay = 3.0f;
+
+	bHasValidTarget = false;
 
 	EnemyMovementStatus = EEnemyMovementStatus::EMS_Idle; // 초기는 Idle로
 }
@@ -70,6 +75,8 @@ void AEnemy::BeginPlay()
 	// 특정 채널만 -> 파라미터 : 어떤 채널을 어떻게 설정할 것인지?
 	CombatCollision->SetCollisionResponseToChannel(ECollisionChannel::ECC_Pawn, ECollisionResponse::ECR_Overlap);
 
+	AgroSphere->SetCollisionResponseToAllChannels(ECollisionResponse::ECR_Ignore);
+	AgroSphere->SetCollisionResponseToChannel(ECollisionChannel::ECC_Pawn, ECollisionResponse::ECR_Overlap);
 }
 
 // Called every frame
@@ -88,7 +95,7 @@ void AEnemy::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 
 void AEnemy::AgroSphereOnOverlapBegin(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
-	if (OtherActor)
+	if (OtherActor && Alive())
 	{
 		AMainCharacter* MainCharacter = Cast<AMainCharacter>(OtherActor);
 		if (MainCharacter)
@@ -120,12 +127,18 @@ void AEnemy::AgroSphereOnOverlapEnd(UPrimitiveComponent* OverlappedComponent, AA
 void AEnemy::CombatSphereOnOverlapBegin(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
 	// 충돌 했다면
-	if (OtherActor)
+	if (OtherActor && Alive())
 	{
 		AMainCharacter* MainCharacter = Cast<AMainCharacter>(OtherActor);
 		if (MainCharacter)
 		{
+			bHasValidTarget = true;
+
 			MainCharacter->SetCombetTarget(this);
+			if (MainCharacter->MainPlayerController)
+			{
+				MainCharacter->MainPlayerController->DisplayEnemyHealthBar();
+			}
 			CombatTarget = MainCharacter;
 			bOverlappingCombatSphere = true;
 			
@@ -142,12 +155,18 @@ void AEnemy::CombatSphereOnOverlapEnd(UPrimitiveComponent* OverlappedComponent, 
 		AMainCharacter* MainCharacter = Cast<AMainCharacter>(OtherActor);
 		if (MainCharacter)
 		{
+			bHasValidTarget = false;
+
 			bOverlappingCombatSphere = false;
 			MoveToTarget(MainCharacter);
 
 			if (MainCharacter->CombatTarget == this)
 			{
 				MainCharacter->SetCombetTarget(nullptr);
+				if (MainCharacter->MainPlayerController)
+				{
+					MainCharacter->MainPlayerController->RemoveEnemyHealthBar();
+				}
 			}
 
 			GetWorldTimerManager().ClearTimer(AttackTimer);
@@ -232,6 +251,10 @@ void AEnemy::DeactivateCollision()
 
 void AEnemy::Attack()
 {
+	// 살아있지 않다면 반환하라
+	if (!Alive()) return;
+	if (!bHasValidTarget) return;
+
 	if (AIController)
 	{
 		AIController->StopMovement();
@@ -311,4 +334,16 @@ void AEnemy::DeathEnd()
 	// 애니를 강제로 중지시킨다.
 	GetMesh()->bPauseAnims = true;
 	GetMesh()->bNoSkeletonUpdate = true;
+
+	GetWorldTimerManager().SetTimer(DeathTimer, this, &AEnemy::Disappear, DeathDelay);
+}
+
+bool AEnemy::Alive()
+{
+	return GetEnemyMovementStatus() != EEnemyMovementStatus::EMS_Dead;
+}
+
+void AEnemy::Disappear()
+{
+	Destroy();
 }

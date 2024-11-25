@@ -12,6 +12,7 @@
 #include "Sound/SoundCue.h"
 #include "Kismet/KismetMathLibrary.h"
 #include "Enemy.h"
+#include "MainPlayerController.h"
 
 // Sets default values
 AMainCharacter::AMainCharacter()
@@ -67,6 +68,9 @@ AMainCharacter::AMainCharacter()
 
 	InterpSpeed = 15.f;
 	bInterpToEnemy = false;
+
+	bMovingForward = false;
+	bMovingRight = false;
 }
 
 void AMainCharacter::ShowPickupLocations()
@@ -136,7 +140,7 @@ float AMainCharacter::TakeDamage(float DamageAmount, FDamageEvent const& DamageE
 			AEnemy* Enemy = Cast<AEnemy>(DamageCauser);
 			if (Enemy)
 			{
-
+				Enemy->bHasValidTarget = false;
 			}
 		}
 	}
@@ -162,6 +166,15 @@ void AMainCharacter::IncrementCoins(int32 Amount)
 	Coins += Amount;
 }
 
+void AMainCharacter::Jump()
+{
+	// 죽음 상태가 아닐 때만 점프가되게
+	if (MovementStatus != EMovementStatus::EMS_Dead)
+	{
+		Super::Jump();
+	}
+}
+
 // Called when the game starts or when spawned
 void AMainCharacter::BeginPlay()
 {
@@ -172,12 +185,16 @@ void AMainCharacter::BeginPlay()
 		GetActorLocation() + FVector(0, 0, 75.f),
 		25.0f, 12, FLinearColor::Green,
 		10.f, 0.5f);*/
+
+	MainPlayerController = Cast<AMainPlayerController>(GetController());
 }
 
 // Called every frame
 void AMainCharacter::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
+
+	if (MovementStatus == EMovementStatus::EMS_Dead) return;
 
 	float DeltaStamina = StaminaDrainRate * DeltaTime; // 초당 25 깎임
 
@@ -192,7 +209,14 @@ void AMainCharacter::Tick(float DeltaTime)
 				SetStaminaStatus(EStaminaStatus::ESS_BelowMinimum);
 			}
 
-			SetMovementStatus(EMovementStatus::EMS_Sprinting);
+			if (bMovingForward || bMovingRight)
+			{
+				SetMovementStatus(EMovementStatus::EMS_Sprinting);
+			}
+			else
+			{
+				SetMovementStatus(EMovementStatus::EMS_Normal);
+			}
 		}
 		else
 		{
@@ -217,7 +241,14 @@ void AMainCharacter::Tick(float DeltaTime)
 			}
 			else
 			{
-				SetMovementStatus(EMovementStatus::EMS_Sprinting);
+				if (bMovingForward || bMovingRight)
+				{
+					SetMovementStatus(EMovementStatus::EMS_Sprinting);
+				}
+				else
+				{
+					SetMovementStatus(EMovementStatus::EMS_Normal);
+				}
 			}
 		}
 		else
@@ -262,6 +293,15 @@ void AMainCharacter::Tick(float DeltaTime)
 
 		SetActorRotation(InterpRotation);
 	}
+
+	if (CombatTarget)
+	{
+		CombatTargetLocation = CombatTarget->GetActorLocation();
+		if (MainPlayerController)
+		{
+			MainPlayerController->EnemyLocation = CombatTargetLocation;
+		}
+	}
 }
 
 // Called to bind functionality to input
@@ -280,7 +320,7 @@ void AMainCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCompo
 
 	// 점프는 Character가 가지고 있음
 	// IE_Pressed : 눌렀을 때
-	PlayerInputComponent->BindAction(TEXT("Jump"), IE_Pressed, this, &ACharacter::Jump);
+	PlayerInputComponent->BindAction(TEXT("Jump"), IE_Pressed, this, &AMainCharacter::Jump);
 	// IE_Released : 누르지 않았을 때
 	PlayerInputComponent->BindAction(TEXT("Jump"), IE_Released, this, &ACharacter::StopJumping);
 	PlayerInputComponent->BindAction(TEXT("Sprint"), IE_Pressed, this, &AMainCharacter::ShiftKeyDown);
@@ -293,8 +333,9 @@ void AMainCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCompo
 
 void AMainCharacter::MoveForward(float Value)
 {
+	bMovingForward = false;
 	// 컨트롤러가 유효하고 Value가 0이 아닐때 && 공격중이 아닐때
-	if (Controller != nullptr && Value != 0.0f && !bAttacking)
+	if (CanMove(Value))
 	{
 		//현재 카메라의 방향을 얻어온다(Pitch, Yaw, Roll) 
 		const FRotator Rotation = Controller->GetControlRotation();
@@ -304,13 +345,15 @@ void AMainCharacter::MoveForward(float Value)
 		const FVector Direction = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::X);
 
 		AddMovementInput(Direction, Value);
+		bMovingForward = true;
 	}
 }
 
 void AMainCharacter::MoveRight(float Value)
 {
+	bMovingRight = false;
 	// 컨트롤러가 유효하고 Value가 0이 아닐때
-	if (Controller != nullptr && Value != 0.0f && !bAttacking)
+	if (CanMove(Value))
 	{
 		//현재 카메라의 방향을 얻어온다(Pitch, Yaw, Roll) 
 		const FRotator Rotation = Controller->GetControlRotation();
@@ -320,12 +363,14 @@ void AMainCharacter::MoveRight(float Value)
 		const FVector Direction = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::Y);
 
 		AddMovementInput(Direction, Value);
+
+		bMovingRight = true;
 	}
 }
 
 void AMainCharacter::TurnAtRate(float Rate)
 {
-	if (Controller != nullptr && Rate != 0.0f)
+	if (CanMove(Rate))
 	{
 		AddControllerYawInput(Rate * BaseTurnRate * GetWorld()->GetDeltaSeconds());
 	}
@@ -333,7 +378,7 @@ void AMainCharacter::TurnAtRate(float Rate)
 
 void AMainCharacter::LookUpAtRate(float Rate)
 {
-	if (Controller != nullptr && Rate != 0.0f)
+	if (CanMove(Rate))
 	{
 		AddControllerPitchInput(Rate * BaseLookUpRate * GetWorld()->GetDeltaSeconds());
 	}
@@ -341,7 +386,7 @@ void AMainCharacter::LookUpAtRate(float Rate)
 
 void AMainCharacter::Turn(float Value)
 {
-	if (Controller != nullptr && Value != 0.0f)
+	if (CanMove(Value))
 	{
 		AddControllerYawInput(Value);
 	}
@@ -350,16 +395,26 @@ void AMainCharacter::Turn(float Value)
 
 void AMainCharacter::LookUp(float Value)
 {
-	if (Controller != nullptr && Value != 0.0f)
+	if (CanMove(Value))
 	{
 		AddControllerPitchInput(Value);
 	}
 }
 
+bool AMainCharacter::CanMove(float Value)
+{
+	if (MainPlayerController)
+	{
+		return (Value != 0.0f) && (!bAttacking) && (MovementStatus != EMovementStatus::EMS_Dead);
+	}
+
+	return false;
+}
+
 void AMainCharacter::LMBDown()
 {
 	bLMBDown = true;
-
+	if (MovementStatus == EMovementStatus::EMS_Dead) return;
 	if (ActiveOverlappingItem)
 	{
 		AWeapon* Weapon = Cast<AWeapon>(ActiveOverlappingItem);
@@ -395,6 +450,7 @@ void AMainCharacter::SetEquippedWeapon(AWeapon* WeaponToSet)
 void AMainCharacter::Attack()
 {
 	if (bAttacking) return; // 이미 공격중이라면?
+	if (MovementStatus == EMovementStatus::EMS_Dead) return;
 
 	bAttacking = true;
 	SetInterpToEnemy(true);
@@ -436,5 +492,11 @@ void AMainCharacter::PlaySwingSound()
 	{
 		UGameplayStatics::PlaySound2D(this, EquippedWeapon->SwingSound);
 	}
+}
+
+void AMainCharacter::DeathEnd()
+{
+	GetMesh()->bPauseAnims = true;
+	GetMesh()->bNoSkeletonUpdate = true;
 }
 
